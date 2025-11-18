@@ -1,0 +1,16 @@
+# Archivos compilados y distribuciones
+/dist/
+/build/
+*.class
+*.jar
+*.war
+
+# Archivos específicos de NetBeans (Usuario)
+nbproject/private/
+build.xml
+nbbuild.xml
+dist.xml
+
+# Archivos temporales del sistema
+.DS_Store
+Thumbs.db
