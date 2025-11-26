@@ -25,8 +25,8 @@ public class G_AuntenticarUsuario {
             con = new ConexionMYSQL().obtenerConexion();
 
             // 2. Preparamos la consulta (Solo buscamos por nombre de usuario)
-            String sql = "SELECT id_usuario, nombre_usuario, contrasena_hash, rol " +
-                         "FROM E_USUARIO WHERE nombre_usuario = ?";
+            String sql = "SELECT idUsuario, username, passwordHash, rol " +
+                         "FROM USUARIO WHERE username = ?";
             
             ps = con.prepareStatement(sql);
             ps.setString(1, usuario);
@@ -34,7 +34,7 @@ public class G_AuntenticarUsuario {
 
             // 3. Verificamos si existe el usuario
           if (rs.next()) {
-                String hashEnBD = rs.getString("contrasena_hash");
+                String hashEnBD = rs.getString("passwordHash");
 
                 // Encriptamos la contraseña que acaba de escribir el usuario
                 String hashIngresado = SeguridadUtils.encriptarSHA256(passwordPlana);
@@ -43,8 +43,8 @@ public class G_AuntenticarUsuario {
                 if (hashEnBD.equals(hashIngresado)) {
                     // ¡Coinciden!
                     usuarioEncontrado = new Usuario();
-                    usuarioEncontrado.setIdUsuario(rs.getInt("id_usuario"));
-                    usuarioEncontrado.setNombreUsuario(rs.getString("nombre_usuario"));
+                    usuarioEncontrado.setIdUsuario(rs.getInt("idUsuario"));
+                    usuarioEncontrado.setNombreUsuario(rs.getString("username"));
                     usuarioEncontrado.setRol(rs.getString("rol"));
                 }
             }
@@ -57,8 +57,9 @@ public class G_AuntenticarUsuario {
                 if (ps != null) ps.close();
                 if (con != null) con.close();
             } catch (SQLException ex) {}
+            System.out.println("Se logueo bien");
         }
-
+        System.out.println("Vamso bien");
         return usuarioEncontrado; // Retorna null si no existe o pass incorrecta
     }
 }

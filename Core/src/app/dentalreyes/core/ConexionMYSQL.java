@@ -5,7 +5,19 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class ConexionMYSQL {
+public class ConexionMYSQL{
+    
+    public ConexionMYSQL(){
+        try {
+            // Cargar el driver explícitamente (útil para versiones antiguas de Java)
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            System.out.println("[Core] Driver MySQL cargado correctamente.");
+        } catch (ClassNotFoundException e) {
+            System.err.println("[Core Error] No se encontró el driver MySQL: " + e.getMessage());
+            System.err.println("Solución: Agregar mysql-connector-j.jar al proyecto");
+        }
+    }
+    
     String url = "jdbc:mysql://localhost:3306/dentalreyesdb";
     String user = "root";
     String password = "root";
@@ -17,6 +29,7 @@ public class ConexionMYSQL {
             // Intentar conectar
             conexion = DriverManager.getConnection(url, user, password);
             System.out.println("[Core] Conexion correcta.");
+            System.out.println("Miraaa");
             return conexion;
             
         } catch (SQLException e) {
