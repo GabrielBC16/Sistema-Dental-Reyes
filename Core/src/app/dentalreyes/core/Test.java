@@ -5,10 +5,7 @@
 package app.dentalreyes.core;
 
 
-/**
- *
- * @author Soporte
- */
+
 public class Test {
     public static void main(String[] args) {
         // Instanciamos nuestra clase de arquitectura
