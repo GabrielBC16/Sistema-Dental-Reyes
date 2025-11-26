@@ -4,10 +4,21 @@
  */
 package app.dentalreyes.entidades;
 
-/**
- *
- * @author Soporte
- */
+
 public class HistorialClinico {
-    
+    private int idHistorial;
+    private int idPaciente; // Relación 1 a 1 con Paciente
+
+    public HistorialClinico() {}
+
+    public HistorialClinico(int idHistorial, int idPaciente) {
+        this.idHistorial = idHistorial;
+        this.idPaciente = idPaciente;
+    }
+
+    public int getIdHistorial() { return idHistorial; }
+    public void setIdHistorial(int idHistorial) { this.idHistorial = idHistorial; }
+
+    public int getIdPaciente() { return idPaciente; }
+    public void setIdPaciente(int idPaciente) { this.idPaciente = idPaciente; }
 }
