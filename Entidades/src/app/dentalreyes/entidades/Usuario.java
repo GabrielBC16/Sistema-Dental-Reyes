@@ -1,29 +1,26 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package app.dentalreyes.entidades;
-
 
 public class Usuario {
     private int idUsuario;
-    private String nombreUsuario;
+    private String nombreUsuario; // En BD es 'username'
     private String contrasenaHash;
-    private String rol; // "Dentista" o "Asistente"
+    private String rol; 
+    private String nombreCompleto; // AGREGADO: Necesario según la BD
+    private int estado;            // AGREGADO: Para saber si está activo (1) o no (0)
 
-    // Constructor vacío (necesario para buenas prácticas)
     public Usuario() {
     }
 
-    // Constructor completo
-    public Usuario(int idUsuario, String nombreUsuario, String contrasenaHash, String rol) {
+    public Usuario(int idUsuario, String nombreUsuario, String contrasenaHash, String rol, String nombreCompleto) {
         this.idUsuario = idUsuario;
         this.nombreUsuario = nombreUsuario;
         this.contrasenaHash = contrasenaHash;
         this.rol = rol;
+        this.nombreCompleto = nombreCompleto;
+        this.estado = 1;
     }
 
-    // Getters y Setters (Encapsulamiento)
+    // Getters y Setters
     public int getIdUsuario() { return idUsuario; }
     public void setIdUsuario(int idUsuario) { this.idUsuario = idUsuario; }
 
@@ -35,9 +32,15 @@ public class Usuario {
 
     public String getRol() { return rol; }
     public void setRol(String rol) { this.rol = rol; }
+
+    public String getNombreCompleto() { return nombreCompleto; }
+    public void setNombreCompleto(String nombreCompleto) { this.nombreCompleto = nombreCompleto; }
+
+    public int getEstado() { return estado; }
+    public void setEstado(int estado) { this.estado = estado; }
     
     @Override
     public String toString() {
-        return nombreUsuario + " (" + rol + ")";
+        return nombreCompleto + " (" + rol + ")";
     }
 }
