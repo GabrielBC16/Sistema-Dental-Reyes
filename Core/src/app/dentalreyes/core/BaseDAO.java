@@ -5,7 +5,6 @@ import java.sql.SQLException;
 
 public class BaseDAO {
     
-    // Este método conecta con tu clase estática ConexionMYSQL
     protected Connection getConexion() {
         return ConexionMYSQL.getConnection();
     }
