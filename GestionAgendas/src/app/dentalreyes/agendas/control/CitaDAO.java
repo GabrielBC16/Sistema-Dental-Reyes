@@ -100,6 +100,7 @@ public class CitaDAO {
 
     /**
      * Obtiene todas las citas futuras de un paciente
+     * @return 
      */
     public List<Cita> obtenerCitasPorPaciente(int idPaciente) {
         List<Cita> citas = new ArrayList<>();

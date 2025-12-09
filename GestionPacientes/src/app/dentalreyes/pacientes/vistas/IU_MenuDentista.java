@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 import javax.swing.*;
+import app.dentalreyes.agendas.vistas.IU_RegistrarDisponibilidadHoraria;
 import javax.swing.border.EmptyBorder;
 
 public class IU_MenuDentista extends javax.swing.JFrame {
@@ -131,7 +132,10 @@ public class IU_MenuDentista extends javax.swing.JFrame {
         int confirm = JOptionPane.showConfirmDialog(this, "¿Cerrar Sesión?", "Salir", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) this.dispose();
     }
-    private void abrirGestionAgenda() { JOptionPane.showMessageDialog(this, "Módulo: Disponibilidad"); }
+    private void abrirGestionAgenda() { 
+            IU_RegistrarDisponibilidadHoraria RDH = new IU_RegistrarDisponibilidadHoraria();
+            RDH.setVisible(true);
+            }
     private void abrirHistorialClinico() { JOptionPane.showMessageDialog(this, "Módulo: Historial"); }
     private void abrirIntervencion() { JOptionPane.showMessageDialog(this, "Módulo: Intervención"); }
     private void abrirDiagnostico() { JOptionPane.showMessageDialog(this, "Módulo: Diagnóstico"); }

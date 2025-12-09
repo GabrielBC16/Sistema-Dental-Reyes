@@ -16,7 +16,7 @@ import java.util.List;
 public class AgendaDAO {
       // SQL para insertar nueva disponibilidad
     private static final String SQL_INSERT = 
-        "INSERT INTO AgendaDeHorarios (fecha, horaInicio, horaFin, estado) " +
+        "INSERT INTO agendadehorarios (fecha, horaInicio, horaFin, estado) " +
         "VALUES (?, ?, ?, ?)";
 
     // SQL para obtener horarios de una semana
@@ -182,6 +182,56 @@ public class AgendaDAO {
         }
 
         return disponibles;
+    }
+    public boolean insertarDisponibilidadLista(List<Agenda_Horarios> lista) {
+        String sql = 
+            "INSERT INTO agendadehorarios (fecha, horaInicio, horaFin, estado, idUsuario) " +
+            "VALUES (?, ?, ?, ?, ?)";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = ConexionMYSQL.getConnection();
+            conn.setAutoCommit(false); // iniciar transacción
+
+            ps = conn.prepareStatement(sql);
+
+            for (Agenda_Horarios h : lista) {
+
+                ps.setDate(1, java.sql.Date.valueOf(h.getDia()));
+                ps.setTime(2, java.sql.Time.valueOf(h.getHoraInicio()));
+                ps.setTime(3, java.sql.Time.valueOf(h.getHoraFin()));
+                ps.setString(4, h.getEstado());
+                ps.setInt(5,1);
+
+                ps.addBatch();
+            }
+
+            ps.executeBatch();
+            conn.commit();
+            return true;
+
+        } catch (SQLException e) {
+            System.out.println("ERROR insertarDisponibilidadLista(): " + e.getMessage());
+
+            try {
+                if (conn != null) conn.rollback();
+            } catch (SQLException ex) {
+                System.out.println("ERROR al hacer rollback: " + ex.getMessage());
+            }
+
+        } finally {
+            try {
+                if (ps != null) ps.close();
+                if (conn != null) conn.setAutoCommit(true);
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                System.out.println("ERROR al cerrar conexión: " + e.getMessage());
+            }
+        }
+
+        return false;
     }
 
     /**
