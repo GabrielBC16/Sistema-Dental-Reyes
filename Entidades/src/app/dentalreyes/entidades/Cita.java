@@ -1,83 +1,49 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package app.dentalreyes.entidades;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
-
+import java.sql.Timestamp;
 
 public class Cita {
     private int idCita;
-    private LocalDate fecha;
+    private int idPaciente;
+    private int idAgendaHorario;
+    private String motivo; 
+    private String estado;
+    private Timestamp fechaRegistro;
+    
+    // Campos auxiliares (para mostrar en tablas, no se guardan en BD 'Cita')
+    private LocalDate fecha; 
     private LocalTime hora;
-    private String estado; // "Programada", "Cancelada", "Atendida"
-    private int idPaciente; // Llave foránea
-    private int idAgendaHorario; // Llave foránea
+
+    public Cita() {
+    }
+
+    // --- GETTERS Y SETTERS ---
+
+    public int getIdCita() { return idCita; }
+    public void setIdCita(int idCita) { this.idCita = idCita; }
+
+    public int getIdPaciente() { return idPaciente; }
+    public void setIdPaciente(int idPaciente) { this.idPaciente = idPaciente; }
+
+    public int getIdAgendaHorario() { return idAgendaHorario; }
+    public void setIdAgendaHorario(int idAgendaHorario) { this.idAgendaHorario = idAgendaHorario; }
+
+    // Aquí está el que te faltaba:
+    public String getMotivo() { return motivo; }
+    public void setMotivo(String motivo) { this.motivo = motivo; }
+
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
     
-    private String nombrePaciente;
-    private String dniPaciente;
+    public Timestamp getFechaRegistro() { return fechaRegistro; }
+    public void setFechaRegistro(Timestamp fechaRegistro) { this.fechaRegistro = fechaRegistro; }
 
-    public Cita() {}
+    // Auxiliares
+    public LocalDate getFecha() { return fecha; }
+    public void setFecha(LocalDate fecha) { this.fecha = fecha; }
 
-    public Cita(int idCita, LocalDate fecha, LocalTime hora, String estado, int idPaciente, int idAgendaHorario) {
-        this.idCita = idCita;
-        this.fecha = fecha;
-        this.hora = hora;
-        this.estado = estado;
-        this.idPaciente = idPaciente;
-        this.idAgendaHorario = idAgendaHorario;
-    }
-
-    public int getIdCita() {
-        return idCita;
-    }
-
-    public LocalDate getFecha() {
-        return fecha;
-    }
-
-    public LocalTime getHora() {
-        return hora;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public int getIdPaciente() {
-        return idPaciente;
-    }
-
-    public int getIdAgendaHorario() {
-        return idAgendaHorario;
-    }
-
-    public void setIdCita(int idCita) {
-        this.idCita = idCita;
-    }
-
-    public void setFecha(LocalDate fecha) {
-        this.fecha = fecha;
-    }
-
-    public void setHora(LocalTime hora) {
-        this.hora = hora;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
-
-    public void setIdPaciente(int idPaciente) {
-        this.idPaciente = idPaciente;
-    }
-
-    public void setIdAgendaHorario(int idAgendaHorario) {
-        this.idAgendaHorario = idAgendaHorario;
-    }
-
-
-    
-    
+    public LocalTime getHora() { return hora; }
+    public void setHora(LocalTime hora) { this.hora = hora; }
 }

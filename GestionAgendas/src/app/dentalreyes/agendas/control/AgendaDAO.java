@@ -7,6 +7,7 @@ package app.dentalreyes.agendas.control;
 
 import app.dentalreyes.core.ConexionMYSQL;
 import app.dentalreyes.entidades.Agenda_Horarios;
+import app.dentalreyes.entidades.UsuarioSesion;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -36,7 +37,7 @@ public class AgendaDAO {
 
     // SQL para obtener horarios disponibles de un día
     private static final String SQL_GET_DISPONIBLES_DIA = 
-        "SELECT * FROM AgendaDeHorarios " +
+        "SELECT idAgenda, fecha, horaInicio, horaFin, estado FROM AgendaDeHorarios " +
         "WHERE fecha = ? AND estado = 'DISPONIBLE' " +
         "ORDER BY horaInicio";
 
@@ -203,7 +204,12 @@ public class AgendaDAO {
                 ps.setTime(2, java.sql.Time.valueOf(h.getHoraInicio()));
                 ps.setTime(3, java.sql.Time.valueOf(h.getHoraFin()));
                 ps.setString(4, h.getEstado());
-                ps.setInt(5,1);
+                if (UsuarioSesion.getInstance().getIdUsuario() > 0) {
+                    ps.setInt(5, UsuarioSesion.getInstance().getIdUsuario());
+                } else {
+                    // Seguridad por si se perdió la sesión (no debería pasar)
+                    throw new SQLException("No hay usuario logueado en sesión.");
+                }
 
                 ps.addBatch();
             }
@@ -239,6 +245,7 @@ public class AgendaDAO {
      */
     private Agenda_Horarios mapearResultSet(ResultSet rs) throws SQLException {
         Agenda_Horarios agenda = new Agenda_Horarios();
+        agenda.setIdAgendaHorario(rs.getInt("idAgenda"));
         agenda.setDia(rs.getDate("fecha").toLocalDate());
         agenda.setHoraInicio(rs.getTime("horaInicio").toLocalTime());
         agenda.setHoraFin(rs.getTime("horaFin").toLocalTime());

@@ -1,51 +1,52 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package app.dentalreyes.entidades;
-import java.sql.Date;
+
+import java.util.Date;
 
 public class Intervencion {
     private int idIntervencion;
-    private String tipo;
-    private String descripcion;
-    private String motivo;
-    private String estado;
-    private Date fecha;
     private int idHistorial;
+    private int idCita;
+    
+    private String piezaDental;
+    private String tratamiento;
+    private String descripcion;
+    private String observaciones;
+    
+    private double costo;
+    private String estado; // "REALIZADO" o "PLANIFICADO"
+    private Date fechaIntervencion;
 
-    public Intervencion() {}
-
-    // Constructor completo
-    public Intervencion(int idIntervencion, String tipo, String descripcion, String motivo, String estado, Date fecha, int idHistorial) {
-        this.idIntervencion = idIntervencion;
-        this.tipo = tipo;
-        this.descripcion = descripcion;
-        this.motivo = motivo;
-        this.estado = estado;
-        this.fecha = fecha;
-        this.idHistorial = idHistorial;
+    public Intervencion() {
     }
 
-    // Getters y Setters...
+    // --- GETTERS Y SETTERS ---
     public int getIdIntervencion() { return idIntervencion; }
     public void setIdIntervencion(int idIntervencion) { this.idIntervencion = idIntervencion; }
 
-    public String getTipo() { return tipo; }
-    public void setTipo(String tipo) { this.tipo = tipo; }
+    public int getIdHistorial() { return idHistorial; }
+    public void setIdHistorial(int idHistorial) { this.idHistorial = idHistorial; }
+
+    public int getIdCita() { return idCita; }
+    public void setIdCita(int idCita) { this.idCita = idCita; }
+
+    public String getPiezaDental() { return piezaDental; }
+    public void setPiezaDental(String piezaDental) { this.piezaDental = piezaDental; }
+
+    public String getTratamiento() { return tratamiento; }
+    public void setTratamiento(String tratamiento) { this.tratamiento = tratamiento; }
 
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
-    public String getMotivo() { return motivo; }
-    public void setMotivo(String motivo) { this.motivo = motivo; }
+    public String getObservaciones() { return observaciones; }
+    public void setObservaciones(String observaciones) { this.observaciones = observaciones; }
+
+    public double getCosto() { return costo; }
+    public void setCosto(double costo) { this.costo = costo; }
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
 
-    public Date getFecha() { return fecha; }
-    public void setFecha(Date fecha) { this.fecha = fecha; }
-
-    public int getIdHistorial() { return idHistorial; }
-    public void setIdHistorial(int idHistorial) { this.idHistorial = idHistorial; }
+    public Date getFechaIntervencion() { return fechaIntervencion; }
+    public void setFechaIntervencion(Date fechaIntervencion) { this.fechaIntervencion = fechaIntervencion; }
 }

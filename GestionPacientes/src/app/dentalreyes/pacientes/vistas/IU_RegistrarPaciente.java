@@ -1,6 +1,6 @@
 package app.dentalreyes.pacientes.vistas;
 
-import app.dentalreyes.pacientes.control.G_RegistrarPaciente;
+import app.dentalreyes.pacientes.control.G_GestionarPaciente;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
@@ -11,7 +11,7 @@ import javax.swing.border.Border;
 
 public class IU_RegistrarPaciente extends javax.swing.JFrame {
 
-    private G_RegistrarPaciente controlador;
+    private G_GestionarPaciente controlador;
     
     // Paleta
     private final Color COLOR_GRADIENT_1 = new Color(0, 198, 255); 
@@ -20,7 +20,7 @@ public class IU_RegistrarPaciente extends javax.swing.JFrame {
     private final Color COLOR_TEXT_GRAY = new Color(100, 100, 100);
 
     public IU_RegistrarPaciente() {
-        this.controlador = new G_RegistrarPaciente();
+        this.controlador = new G_GestionarPaciente();
         initComponentsModerno();
     }
 

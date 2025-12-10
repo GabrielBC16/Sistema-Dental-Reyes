@@ -6,6 +6,8 @@ import app.dentalreyes.entidades.Agenda_Horarios;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
+import java.awt.event.*;
+import java.awt.geom.RoundRectangle2D;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -22,516 +24,358 @@ public class IU_RegistrarDisponibilidadHoraria extends javax.swing.JFrame {
     private JPanel gridPanel;
     private JLabel lblMensaje;
     private JButton btnGuardar;
-    private JButton btnLimpiar;
     private JLabel lblContadorSeleccionados;
+    private boolean esSoloLectura = false;
 
-    // Lista de horarios modificados
+    // Lista de cambios
     private List<HorarioSeleccionado> horariosSeleccionados = new ArrayList<>();
 
-    // Configuración de horarios
+    // Configuración
     private static final LocalTime HORA_INICIO = LocalTime.of(8, 0);
     private static final LocalTime HORA_FIN = LocalTime.of(18, 0);
-    private static final int MINUTOS_BLOQUE = 30;
+    private static final int MINUTOS_BLOQUE = 60;
 
-    // Colores personalizados
-    private static final Color COLOR_LIBRE = new Color(238, 238, 238);
-    private static final Color COLOR_DISPONIBLE = new Color(144, 238, 144);
-    private static final Color COLOR_OCUPADO = new Color(255, 182, 193);
-    private static final Color COLOR_HOVER = new Color(200, 230, 201);
-    private static final Color COLOR_PRIMARY = new Color(33, 150, 243);
-    private static final Color COLOR_SUCCESS = new Color(76, 175, 80);
-    private static final Color COLOR_DANGER = new Color(244, 67, 54);
+    // Colores
+    private final Color COLOR_GRADIENT_1 = new Color(0, 198, 255);
+    private final Color COLOR_GRADIENT_2 = new Color(0, 114, 255);
+    private static final Color COLOR_LIBRE = new Color(245, 245, 245);
+    private static final Color COLOR_DISPONIBLE = new Color(129, 199, 132); // Verde pastel
+    private static final Color COLOR_OCUPADO = new Color(229, 57, 53);   // Rojo
 
     public IU_RegistrarDisponibilidadHoraria() {
         this.controlador = new G_RegistrarDisponibilidadHoraria();
-        inicializarComponentes();
+        initComponentsCompacto();
         cargarHorariosExistentes();
     }
-
-    private void inicializarComponentes() {
-        setTitle("Gestión de Disponibilidad Horaria - Dental Reyes");
-        setSize(1000, 700);
-        setLayout(new BorderLayout(10, 10));
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    
+    private void initComponentsCompacto() {
+        setUndecorated(true);
+        // 1. TAMAÑO AJUSTADO PARA TU MONITOR
+        setSize(900, 600); 
         setLocationRelativeTo(null);
+        setShape(new RoundRectangle2D.Double(0, 0, 900, 600, 15, 15));
 
-        // Panel superior: Título y selector de fecha
-        add(crearPanelSuperior(), BorderLayout.NORTH);
+        // Fondo Degradado
+        GradientPanel panelFondo = new GradientPanel(COLOR_GRADIENT_1, COLOR_GRADIENT_2);
+        panelFondo.setLayout(new BorderLayout(10, 10));
+        panelFondo.setBorder(new EmptyBorder(5, 5, 5, 5));
+        setContentPane(panelFondo);
 
-        // Panel central: Grid de horarios
-        add(crearPanelCentral(), BorderLayout.CENTER);
+        // Barra Superior
+        JPanel topBar = new JPanel(new BorderLayout());
+        topBar.setOpaque(false);
+        JLabel lblTitulo = new JLabel(" Disponibilidad Horaria");
+        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        lblTitulo.setForeground(Color.WHITE);
+        
+        JLabel lblCerrar = new JLabel("X   ");
+        lblCerrar.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        lblCerrar.setForeground(Color.WHITE);
+        lblCerrar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        lblCerrar.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) { dispose(); }
+        });
+        
+        topBar.add(lblTitulo, BorderLayout.WEST);
+        topBar.add(lblCerrar, BorderLayout.EAST);
+        panelFondo.add(topBar, BorderLayout.NORTH);
 
-        // Panel inferior: Mensaje y botones
-        add(crearPanelInferior(), BorderLayout.SOUTH);
+        // Panel Central Blanco
+        JPanel cardPanel = new JPanel(new BorderLayout());
+        cardPanel.setBackground(Color.WHITE);
+        cardPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        // Estilos generales
-        getContentPane().setBackground(Color.WHITE);
-    }
-
-    private JPanel crearPanelSuperior() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(new EmptyBorder(15, 20, 10, 20));
-
-        // Título
-        JLabel lblTitulo = new JLabel("Registrar Disponibilidad Horaria");
-        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        lblTitulo.setForeground(COLOR_PRIMARY);
-
-        // Subtítulo
-        JLabel lblSubtitulo = new JLabel("Seleccione los horarios en los que estará disponible para atender");
-        lblSubtitulo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        lblSubtitulo.setForeground(Color.GRAY);
-
-        JPanel panelTitulos = new JPanel(new GridLayout(2, 1, 0, 5));
-        panelTitulos.setBackground(Color.WHITE);
-        panelTitulos.add(lblTitulo);
-        panelTitulos.add(lblSubtitulo);
-
-        // Selector de semana
-        JPanel selectorPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
-        selectorPanel.setBackground(Color.WHITE);
-
-        JLabel lblFecha = new JLabel("Semana del:");
-        lblFecha.setFont(new Font("Segoe UI", Font.BOLD, 13));
-
+        // Selector Fecha
+        JPanel selector = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        selector.setBackground(Color.WHITE);
+        selector.add(new JLabel("Semana del: "));
         spinnerFecha = new JSpinner(new SpinnerDateModel(new Date(), null, null, Calendar.DAY_OF_MONTH));
         spinnerFecha.setEditor(new JSpinner.DateEditor(spinnerFecha, "dd/MM/yyyy"));
-        spinnerFecha.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        ((JSpinner.DefaultEditor) spinnerFecha.getEditor()).getTextField().setEditable(false);
-
-        JButton btnCargar = crearBoton("Cargar Semana", COLOR_PRIMARY, Color.WHITE);
+        selector.add(spinnerFecha);
+        
+        JButton btnCargar = new JButton("Cargar");
         btnCargar.addActionListener(e -> cargarHorariosExistentes());
-
-        JButton btnHoy = crearBoton("Semana Actual", new Color(156, 39, 176), Color.WHITE);
-        btnHoy.addActionListener(e -> {
-            spinnerFecha.setValue(new Date());
-            cargarHorariosExistentes();
-        });
-
-        selectorPanel.add(lblFecha);
-        selectorPanel.add(spinnerFecha);
-        selectorPanel.add(btnCargar);
-        selectorPanel.add(btnHoy);
-
-        panel.add(panelTitulos, BorderLayout.NORTH);
-        panel.add(selectorPanel, BorderLayout.SOUTH);
-
-        return panel;
-    }
-
-    private JPanel crearPanelCentral() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(new EmptyBorder(5, 20, 5, 20));
-
+        selector.add(btnCargar);
+        
         // Leyenda
-        JPanel leyendaPanel = crearPanelLeyenda();
+        selector.add(Box.createHorizontalStrut(20));
+        selector.add(crearItemLeyenda("Libre", COLOR_LIBRE));
+        selector.add(crearItemLeyenda("Disponible", COLOR_DISPONIBLE));
+        selector.add(crearItemLeyenda("Ocupado", COLOR_OCUPADO));
+        
+        cardPanel.add(selector, BorderLayout.NORTH);
 
-        // Grid de horarios
+        // Grid con Scroll
         gridPanel = new JPanel();
         gridPanel.setBackground(Color.WHITE);
-
         JScrollPane scroll = new JScrollPane(gridPanel);
-        scroll.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        scroll.setBorder(null);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
+        cardPanel.add(scroll, BorderLayout.CENTER);
 
-        panel.add(leyendaPanel, BorderLayout.NORTH);
-        panel.add(scroll, BorderLayout.CENTER);
-
-        return panel;
-    }
-
-    private JPanel crearPanelLeyenda() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(new EmptyBorder(5, 0, 10, 0));
-
-        panel.add(crearItemLeyenda("Libre", COLOR_LIBRE));
-        panel.add(crearItemLeyenda("Disponible", COLOR_DISPONIBLE));
-        panel.add(crearItemLeyenda("Ocupado (con cita)", COLOR_OCUPADO));
-
-        lblContadorSeleccionados = new JLabel("Horarios modificados: 0");
-        lblContadorSeleccionados.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblContadorSeleccionados.setForeground(COLOR_PRIMARY);
-        panel.add(Box.createHorizontalStrut(30));
-        panel.add(lblContadorSeleccionados);
-
-        return panel;
-    }
-
-    private JPanel crearItemLeyenda(String texto, Color color) {
-        JPanel item = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        item.setBackground(Color.WHITE);
-
-        JPanel colorBox = new JPanel();
-        colorBox.setPreferredSize(new Dimension(20, 20));
-        colorBox.setBackground(color);
-        colorBox.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-
-        JLabel label = new JLabel(texto);
-        label.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-
-        item.add(colorBox);
-        item.add(label);
-
-        return item;
-    }
-
-    private JPanel crearPanelInferior() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(new EmptyBorder(10, 20, 15, 20));
-
-        // Mensaje
-        lblMensaje = new JLabel(" ");
-        lblMensaje.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblMensaje.setHorizontalAlignment(SwingConstants.CENTER);
-
-        // Botones
-        JPanel botonesPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
-        botonesPanel.setBackground(Color.WHITE);
-
-        btnLimpiar = crearBoton("Limpiar Selección", new Color(255, 152, 0), Color.WHITE);
-        btnLimpiar.addActionListener(e -> limpiarSeleccion());
-
-        btnGuardar = crearBoton("Guardar Disponibilidad", COLOR_SUCCESS, Color.WHITE);
-        btnGuardar.setPreferredSize(new Dimension(180, 35));
+        // Panel Inferior
+        JPanel bottom = new JPanel(new BorderLayout());
+        bottom.setBackground(Color.WHITE);
+        
+        lblMensaje = new JLabel("Listo.");
+        lblContadorSeleccionados = new JLabel("Modificados: 0");
+        
+        JPanel info = new JPanel(new GridLayout(2,1));
+        info.setBackground(Color.WHITE);
+        info.add(lblMensaje);
+        info.add(lblContadorSeleccionados);
+        
+        btnGuardar = new JButton("GUARDAR CAMBIOS");
+        btnGuardar.setBackground(new Color(0, 180, 80));
+        btnGuardar.setForeground(Color.WHITE);
+        btnGuardar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        
+        btnGuardar.setOpaque(true);
+        btnGuardar.setContentAreaFilled(true);
+        btnGuardar.setBorderPainted(false);
+        btnGuardar.setFocusPainted(false);
+        
         btnGuardar.addActionListener(e -> guardarDisponibilidad());
+        
+        bottom.add(info, BorderLayout.WEST);
+        bottom.add(btnGuardar, BorderLayout.EAST);
+        cardPanel.add(bottom, BorderLayout.SOUTH);
 
-        JButton btnCancelar = crearBoton("Cerrar", COLOR_DANGER, Color.WHITE);
-        btnCancelar.addActionListener(e -> dispose());
-
-        botonesPanel.add(btnLimpiar);
-        botonesPanel.add(btnGuardar);
-        botonesPanel.add(btnCancelar);
-
-        panel.add(lblMensaje, BorderLayout.CENTER);
-        panel.add(botonesPanel, BorderLayout.SOUTH);
-
-        return panel;
-    }
-
-    private JButton crearBoton(String texto, Color fondo, Color textoColor) {
-        JButton btn = new JButton(texto);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btn.setBackground(fondo);
-        btn.setForeground(textoColor);
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(140, 32));
-
-        // Efecto hover
-        btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                btn.setBackground(fondo.darker());
-            }
-
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                btn.setBackground(fondo);
-            }
-        });
-
-        return btn;
+        panelFondo.add(cardPanel, BorderLayout.CENTER);
     }
 
     private void cargarHorariosExistentes() {
-        // Mostrar cursor de espera
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        btnGuardar.setEnabled(false);
-
         try {
             horariosSeleccionados.clear();
             gridPanel.removeAll();
 
-            // Obtener lunes de la semana seleccionada
             Date fecha = (Date) spinnerFecha.getValue();
             LocalDate baseDate = fecha.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
                     .with(java.time.DayOfWeek.MONDAY);
 
             LocalDate inicioSemana = baseDate;
-            LocalDate finSemana = baseDate.plusDays(4);
-
-            // Actualizar spinner a lunes
+            LocalDate finSemana = baseDate.plusDays(4); 
             spinnerFecha.setValue(Date.from(inicioSemana.atStartOfDay(ZoneId.systemDefault()).toInstant()));
 
-            // Obtener horarios de BD
-            List<Agenda_Horarios> horariosBD = 
-                controlador.obtenerHorariosSemana(inicioSemana, finSemana);
+            // Obtener de BD
+            List<Agenda_Horarios> horariosBD = controlador.obtenerHorariosSemana(inicioSemana, finSemana);
 
-            // Crear grid
-            int numeroFilas = ((HORA_FIN.toSecondOfDay() - HORA_INICIO.toSecondOfDay()) / 60 / MINUTOS_BLOQUE) + 1;
-            gridPanel.setLayout(new GridLayout(numeroFilas + 1, 6, 2, 2));
+            // Calcular filas
+            int totalMinutos = (int) java.time.temporal.ChronoUnit.MINUTES.between(HORA_INICIO, HORA_FIN);
+            int filas = (totalMinutos / MINUTOS_BLOQUE);
+            gridPanel.setLayout(new GridLayout(filas + 1, 6, 2, 2));
 
             // Encabezados
-            agregarEncabezado("", true);
+            addHeader("", true);
             String[] dias = {"Lunes", "Martes", "Miércoles", "Jueves", "Viernes"};
-            for (String dia : dias) {
-                agregarEncabezado(dia + "\n" + inicioSemana.plusDays(java.util.Arrays.asList(dias).indexOf(dia))
-                        .format(DateTimeFormatter.ofPattern("dd/MM")), false);
+            for (int i = 0; i < 5; i++) {
+                addHeader(dias[i] + " " + inicioSemana.plusDays(i).format(DateTimeFormatter.ofPattern("dd/MM")), false);
             }
 
-            // Crear botones de horario
+            // Filas
             LocalTime horaActual = HORA_INICIO;
             while (horaActual.isBefore(HORA_FIN)) {
-                // Columna de hora
-                JLabel lblHora = new JLabel(horaActual.format(DateTimeFormatter.ofPattern("HH:mm")));
-                lblHora.setFont(new Font("Segoe UI", Font.BOLD, 12));
-                lblHora.setHorizontalAlignment(SwingConstants.CENTER);
-                lblHora.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
-                lblHora.setOpaque(true);
-                lblHora.setBackground(new Color(245, 245, 245));
-                gridPanel.add(lblHora);
+                // Hora
+                JLabel lblH = new JLabel(horaActual.toString());
+                lblH.setHorizontalAlignment(SwingConstants.CENTER);
+                lblH.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+                gridPanel.add(lblH);
 
-                // Botones para cada día
+                // Botones
                 for (int i = 0; i < 5; i++) {
                     LocalDate fechaDia = inicioSemana.plusDays(i);
-                    JButton btn = crearBotonHorario(fechaDia, horaActual, horariosBD);
-                    gridPanel.add(btn);
+                    
+                    // 2. BÚSQUEDA ROBUSTA (Corregida para que pinte los colores)
+                    Agenda_Horarios encontrado = null;
+                    if(horariosBD != null) {
+                        for(Agenda_Horarios h : horariosBD) {
+                            // Comparamos usando métodos de tiempo de Java, no Strings
+                            if(h.getDia().isEqual(fechaDia) && 
+                               (h.getHoraInicio().equals(horaActual) || 
+                                // A veces la BD devuelve 08:00:00 y Java tiene 08:00. Esto lo arregla:
+                                h.getHoraInicio().getHour() == horaActual.getHour() && 
+                                h.getHoraInicio().getMinute() == horaActual.getMinute())) {
+                                encontrado = h;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    gridPanel.add(crearBoton(fechaDia, horaActual, encontrado));
                 }
-
                 horaActual = horaActual.plusMinutes(MINUTOS_BLOQUE);
             }
 
             gridPanel.revalidate();
             gridPanel.repaint();
-
-            mostrarMensaje("Horarios cargados correctamente para la semana del " + 
-                          inicioSemana.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), 
-                          COLOR_SUCCESS);
+            lblMensaje.setText("Cargado correctamente.");
             actualizarContador();
 
         } catch (Exception e) {
-            mostrarMensaje("ERROR al cargar horarios: " + e.getMessage(), COLOR_DANGER);
             e.printStackTrace();
+            lblMensaje.setText("Error cargando datos.");
         } finally {
             setCursor(Cursor.getDefaultCursor());
-            btnGuardar.setEnabled(true);
         }
     }
 
-    private void agregarEncabezado(String texto, boolean esHora) {
-        JLabel lbl = new JLabel("<html><center>" + texto.replace("\n", "<br>") + "</center></html>");
-        lbl.setFont(new Font("Segoe UI", Font.BOLD, esHora ? 12 : 11));
-        lbl.setHorizontalAlignment(SwingConstants.CENTER);
-        lbl.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        lbl.setOpaque(true);
-        lbl.setBackground(new Color(33, 150, 243));
-        lbl.setForeground(Color.WHITE);
-        lbl.setPreferredSize(new Dimension(esHora ? 80 : 150, 40));
-        gridPanel.add(lbl);
-    }
-
-    private JButton crearBotonHorario(LocalDate fecha, LocalTime hora, List<Agenda_Horarios> horariosBD) {
+    private JButton crearBoton(LocalDate f, LocalTime h, Agenda_Horarios datosBD) {
         JButton btn = new JButton("Libre");
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        btn.setBackground(COLOR_LIBRE);
+        
+        btn.setUI(new javax.swing.plaf.basic.BasicButtonUI()); 
+        
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 11)); // Letra negrita para que se lea bien en blanco
+        btn.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
+        
+        btn.setOpaque(true);
+        btn.setContentAreaFilled(true);
         btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(150, 35));
+        
+        HorarioSeleccionado hs = new HorarioSeleccionado(f, h, "LIBRE");
 
-        HorarioSeleccionado hs = new HorarioSeleccionado(fecha, hora, "LIBRE");
-        btn.putClientProperty("horario", hs);
-
-        // Verificar si existe en BD
-        for (Agenda_Horarios bd : horariosBD) {
-            if (bd.getDia().equals(fecha) && bd.getHoraInicio().equals(hora)) {
-                hs.estado = bd.getEstado();
-
-                if ("DISPONIBLE".equals(bd.getEstado())) {
-                    btn.setText("✓ Disponible");
-                    btn.setBackground(COLOR_DISPONIBLE);
-                } else if ("OCUPADO".equals(bd.getEstado())) {
-                    btn.setText("✗ Ocupado");
-                    btn.setBackground(COLOR_OCUPADO);
-                    btn.setEnabled(false);
-                    btn.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-                }
-                break;
+        if (datosBD != null && datosBD.getEstado() != null) {
+            String estadoBD = datosBD.getEstado().trim();
+            hs.estado = estadoBD;
+            
+            if (estadoBD.equalsIgnoreCase("DISPONIBLE")) {
+                btn.setText("Disponible");
+                btn.setBackground(COLOR_DISPONIBLE); // Ahora se verá el Verde Suave
+                btn.setForeground(Color.WHITE);      // Letra Blanca
+            } else if (estadoBD.equalsIgnoreCase("OCUPADO")) {
+                btn.setText("Ocupado");
+                btn.setBackground(COLOR_OCUPADO);
+                btn.setForeground(Color.WHITE);
+                btn.setEnabled(false); 
             }
+        } else {
+            // Estado Libre
+            btn.setBackground(COLOR_LIBRE);
+            btn.setForeground(Color.BLACK);
         }
 
-        // Efecto hover (solo si está habilitado)
-        if (btn.isEnabled()) {
+        btn.putClientProperty("hs", hs);
+        
+        if(btn.isEnabled()) {
+            // Efecto Hover manual (opcional, para que se vea bonito al pasar el mouse)
             btn.addMouseListener(new java.awt.event.MouseAdapter() {
-                Color colorOriginal = btn.getBackground();
-
                 public void mouseEntered(java.awt.event.MouseEvent evt) {
                     if (!btn.getBackground().equals(COLOR_OCUPADO)) {
-                        btn.setBackground(COLOR_HOVER);
+                        btn.setBorder(BorderFactory.createLineBorder(COLOR_GRADIENT_2, 2)); // Resaltar borde
                     }
                 }
-
                 public void mouseExited(java.awt.event.MouseEvent evt) {
-                    btn.setBackground(colorOriginal);
+                    btn.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220))); // Volver a borde normal
                 }
             });
+            
+            btn.addActionListener(e -> toggle(btn));
         }
-
-        btn.addActionListener(e -> toggleHorario(btn));
-
+        
+        if (this.esSoloLectura) {
+            btn.setEnabled(false); 
+            // Truco: Al deshabilitar, Java oscurece el color. 
+            // Si quieres mantener el color vivo, usa un JLabel en vez de JButton o UIManager, 
+            // pero por ahora setEnabled(false) es suficiente para bloquear.
+        }
         return btn;
     }
 
-    private void toggleHorario(JButton btn) {
-        HorarioSeleccionado hs = (HorarioSeleccionado) btn.getClientProperty("horario");
-
-        switch (hs.estado) {
-            case "LIBRE":
-                hs.estado = "DISPONIBLE";
-                btn.setText("✓ Disponible");
-                btn.setBackground(COLOR_DISPONIBLE);
-                if (!horariosSeleccionados.contains(hs)) {
-                    horariosSeleccionados.add(hs);
-                }
-                break;
-
-            case "DISPONIBLE":
-                hs.estado = "LIBRE";
-                btn.setText("Libre");
-                btn.setBackground(COLOR_LIBRE);
-                horariosSeleccionados.remove(hs);
-                break;
-
-            case "OCUPADO":
-                JOptionPane.showMessageDialog(this,
-                        "No puede modificar un horario que ya tiene una cita programada.",
-                        "Horario Ocupado",
-                        JOptionPane.WARNING_MESSAGE);
-                return;
+    private void toggle(JButton btn) {
+        HorarioSeleccionado hs = (HorarioSeleccionado) btn.getClientProperty("hs");
+        if (hs.estado.equalsIgnoreCase("LIBRE")) {
+            hs.estado = "DISPONIBLE";
+            btn.setText("Disponible");
+            btn.setBackground(COLOR_DISPONIBLE);
+            btn.setForeground(Color.WHITE);
+            if (!horariosSeleccionados.contains(hs)) horariosSeleccionados.add(hs);
+        } else if (hs.estado.equalsIgnoreCase("DISPONIBLE")) {
+            hs.estado = "LIBRE";
+            btn.setText("Libre");
+            btn.setBackground(COLOR_LIBRE);
+            btn.setForeground(Color.BLACK);
+            horariosSeleccionados.remove(hs);
         }
-
         actualizarContador();
     }
 
-    private void limpiarSeleccion() {
-        int confirm = JOptionPane.showConfirmDialog(this,
-                "¿Está seguro de limpiar todos los horarios seleccionados?",
-                "Confirmar Limpieza",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE);
-
-        if (confirm == JOptionPane.YES_OPTION) {
-            for (Component comp : gridPanel.getComponents()) {
-                if (comp instanceof JButton) {
-                    JButton btn = (JButton) comp;
-                    HorarioSeleccionado hs = (HorarioSeleccionado) btn.getClientProperty("horario");
-
-                    if (hs != null && "DISPONIBLE".equals(hs.estado)) {
-                        hs.estado = "LIBRE";
-                        btn.setText("Libre");
-                        btn.setBackground(COLOR_LIBRE);
-                    }
-                }
-            }
-
-            horariosSeleccionados.clear();
-            actualizarContador();
-            mostrarMensaje("Selección limpiada correctamente.", COLOR_SUCCESS);
-        }
-    }
-
     private void guardarDisponibilidad() {
-        if (horariosSeleccionados.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "No hay cambios para guardar. Seleccione al menos un horario.",
-                    "Sin Cambios",
-                    JOptionPane.INFORMATION_MESSAGE);
-            return;
+        if(horariosSeleccionados.isEmpty()) { 
+            JOptionPane.showMessageDialog(this, "No hay cambios."); return; 
         }
-
-        int confirm = JOptionPane.showConfirmDialog(this,
-                "¿Confirma que desea guardar " + horariosSeleccionados.size() + " horario(s) como disponible(s)?",
-                "Confirmar Guardado",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE);
-
-        if (confirm != JOptionPane.YES_OPTION) {
-            return;
+        
+        List<Agenda_Horarios> lista = new ArrayList<>();
+        for(HorarioSeleccionado hs : horariosSeleccionados) {
+            Agenda_Horarios a = new Agenda_Horarios();
+            a.setDia(hs.fecha);
+            a.setHoraInicio(hs.hora);
+            a.setHoraFin(hs.hora.plusMinutes(MINUTOS_BLOQUE));
+            a.setEstado(hs.estado); // Debería ser "DISPONIBLE"
+            lista.add(a);
         }
-
-        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        btnGuardar.setEnabled(false);
-
-        try {
-            List<Agenda_Horarios> lista = new ArrayList<>();
-
-            for (HorarioSeleccionado hs : horariosSeleccionados) {
-                Agenda_Horarios a = new Agenda_Horarios();
-                a.setDia(hs.fecha);
-                a.setHoraInicio(hs.hora);
-                a.setHoraFin(hs.hora.plusMinutes(MINUTOS_BLOQUE));
-                a.setEstado("DISPONIBLE");
-                lista.add(a);
-            }
-
-            String resultado = controlador.guardarDisponibilidad(lista);
-
-            if (resultado.startsWith("ERROR")) {
-                JOptionPane.showMessageDialog(this,
-                        resultado,
-                        "Error al Guardar",
-                        JOptionPane.ERROR_MESSAGE);
-                mostrarMensaje(resultado, COLOR_DANGER);
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "Disponibilidad guardada exitosamente.\n" + 
-                        horariosSeleccionados.size() + " horario(s) registrado(s).",
-                        "Guardado Exitoso",
-                        JOptionPane.INFORMATION_MESSAGE);
-                mostrarMensaje(resultado, COLOR_SUCCESS);
-                horariosSeleccionados.clear();
-                cargarHorariosExistentes();
-            }
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,
-                    "Error inesperado: " + e.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
-        } finally {
-            setCursor(Cursor.getDefaultCursor());
-            btnGuardar.setEnabled(true);
+        
+        String res = controlador.guardarDisponibilidad(lista);
+        if(res.startsWith("ERROR") || res.contains("conflicto")) {
+             JOptionPane.showMessageDialog(this, res, "Error", JOptionPane.ERROR_MESSAGE);
+        } else {
+             JOptionPane.showMessageDialog(this, "Guardado exitoso.");
+             cargarHorariosExistentes();
         }
     }
 
+    private void addHeader(String t, boolean bg) {
+        JLabel l = new JLabel("<html><center>"+t+"</center></html>");
+        l.setHorizontalAlignment(SwingConstants.CENTER);
+        l.setOpaque(true);
+        l.setBackground(bg ? Color.WHITE : COLOR_GRADIENT_2);
+        l.setForeground(bg ? Color.BLACK : Color.WHITE);
+        gridPanel.add(l);
+    }
+    
     private void actualizarContador() {
-        lblContadorSeleccionados.setText("Horarios modificados: " + horariosSeleccionados.size());
+        lblContadorSeleccionados.setText("Modificados: " + horariosSeleccionados.size());
     }
 
-    private void mostrarMensaje(String msg, Color color) {
-        lblMensaje.setText(msg);
-        lblMensaje.setForeground(color);
-
+    private JPanel crearItemLeyenda(String t, Color c) {
+        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        p.setBackground(Color.WHITE);
+        JPanel b = new JPanel(); b.setPreferredSize(new Dimension(15,15)); b.setBackground(c);
+        p.add(b); p.add(new JLabel(t));
+        return p;
     }
 
-    // Clase auxiliar
     private static class HorarioSeleccionado {
-        LocalDate fecha;
-        LocalTime hora;
-        String estado;
-
+        LocalDate fecha; LocalTime hora; String estado;
         HorarioSeleccionado(LocalDate f, LocalTime h, String e) {
-            this.fecha = f;
-            this.hora = h;
-            this.estado = e;
+            this.fecha=f; this.hora=h; this.estado=e;
+        }
+        @Override public boolean equals(Object o) {
+            if(this==o)return true; if(o==null||getClass()!=o.getClass())return false;
+            HorarioSeleccionado that=(HorarioSeleccionado)o;
+            return fecha.equals(that.fecha) && hora.equals(that.hora);
         }
     }
 
-    // Método main para testing
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+    class GradientPanel extends JPanel {
+        private Color c1, c2;
+        public GradientPanel(Color c1, Color c2) { this.c1=c1; this.c2=c2; }
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2=(Graphics2D)g;
+            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            GradientPaint gp=new GradientPaint(0,0,c1,getWidth(),getHeight(),c2);
+            g2.setPaint(gp); g2.fillRect(0,0,getWidth(),getHeight());
+        }
+    }
+    
+        public void activarModoSoloLectura() {
+        // Cambiar título
+        setTitle("Consultar Disponibilidad (Solo Lectura)");
 
-            IU_RegistrarDisponibilidadHoraria frame = new IU_RegistrarDisponibilidadHoraria();
-            frame.setVisible(true);
-        });
+        // Ocultar botones de edición
+        btnGuardar.setVisible(false);
+        // Deshabilitar interacción en el grid
+        // (Esto se hace recargando, ya que la lógica de crearBoton checa este flag)
+        this.esSoloLectura = true; 
+        cargarHorariosExistentes();
     }
 }

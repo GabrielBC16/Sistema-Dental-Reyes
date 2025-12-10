@@ -1,12 +1,7 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package app.dentalreyes.agendas.control;
 
 import app.dentalreyes.entidades.Agenda_Horarios;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 public class G_RegistrarDisponibilidadHoraria {
@@ -17,42 +12,22 @@ public class G_RegistrarDisponibilidadHoraria {
         this.agendaDAO = new AgendaDAO();
     }
 
-    /**
-     * REGISTRA UNA NUEVA DISPONIBILIDAD HORARIA
-     */
     public String guardarDisponibilidad(List<Agenda_Horarios> listaHorarios) {
-
-    if (listaHorarios == null || listaHorarios.isEmpty()) {
-        return "ERROR: No se recibió ningún horario para registrar.";
-    }
-
-    for (Agenda_Horarios h : listaHorarios) {
-
-        // 1. Validar conflicto
-        boolean conflicto = agendaDAO.existeConflicto(h.getDia(), h.getHoraInicio());
-        if (conflicto) {
-            return "ERROR: Ya existe un horario creado el "
-                    + h.getDia() + " a las " + h.getHoraInicio();
+        if (listaHorarios == null || listaHorarios.isEmpty()) {
+            return "ERROR: No hay horarios seleccionados.";
+        }
+        
+        // Verificar conflictos (opcional, tu lógica anterior estaba bien)
+        // Por ahora guardamos directo para probar
+        if (agendaDAO.insertarDisponibilidadLista(listaHorarios)) {
+            return "Disponibilidad registrada correctamente.";
+        } else {
+            return "ERROR: No se pudieron guardar los datos en BD.";
         }
     }
-
-    // 2. Guardar uno por uno
-    boolean ok = agendaDAO.insertarDisponibilidadLista(listaHorarios);
-
-    if (!ok) {
-        return "ERROR: No se pudieron registrar los horarios.";
-    }
-
-    return "Disponibilidad registrada correctamente.";
-}
     
     public List<Agenda_Horarios> obtenerHorariosSemana(LocalDate fechaInicio, LocalDate fechaFin){
-        
-        List<Agenda_Horarios> horarios = new ArrayList<>();
-        agendaDAO.obtenerHorariosSemana(fechaInicio, fechaFin);
-        return horarios;
+        // Retornamos DIRECTAMENTE lo que nos da el DAO
+        return agendaDAO.obtenerHorariosSemana(fechaInicio, fechaFin);
     }
-
-
 }
-

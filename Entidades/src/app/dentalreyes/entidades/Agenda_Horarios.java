@@ -65,7 +65,4 @@ public class Agenda_Horarios {
         this.estado = estado;
     }
 
-    
-
-    
 }
